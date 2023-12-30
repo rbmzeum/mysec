@@ -42,8 +42,9 @@ impl Crypt {
         // TODO: добавлять к data данные случайного размера для сокрытия размера исходных данных
 
         let message_encrypted_chunks: Vec<_> = data.chunks(16).map(|chunk| {
-            let chunk = format!("{:width$}", std::str::from_utf8(chunk).unwrap(), width=16);
-            let mut block = GenericArray::clone_from_slice(chunk.as_bytes());
+            let mut bytes = [0_u8; 16];
+            bytes[..chunk.len()].copy_from_slice(&chunk);
+            let mut block = GenericArray::clone_from_slice(&bytes);
             encrypt_cipher.encrypt_block(&mut block);
             block
         }).collect();
