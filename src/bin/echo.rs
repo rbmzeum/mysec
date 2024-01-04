@@ -18,9 +18,9 @@ fn main () -> Result<(), ParseIntError> {
     let mut cert = current_dir.clone();
     let mut key = current_dir.clone();
     let mut ca = current_dir.clone();
-    cert.push("ssl/certs/wssserver.local.crt");
-    key.push("ssl/certs/wssserver.local.key");
-    ca.push("ssl/certs/myCA.pem");
+    cert.push("ssl/wss/wssserver.local.crt");
+    key.push("ssl/wss/wssserver.local.key");
+    ca.push("ssl/wss/myCA.pem");
     println!("{:#?}\n{:#?}\n{:#?}", &current_dir, &cert, &key);
 
     let mut acceptor = SslAcceptor::mozilla_intermediate(SslMethod::tls_server()).unwrap();
