@@ -19,7 +19,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     builder.check_private_key().unwrap();
     builder.set_verify(SslVerifyMode::NONE); // DEBUG !!!! в продакшне заменить NONE на PEER и вынести в конфиг
     // accept all certificates, we'll do our own validation on them
-    builder.set_verify_callback(SslVerifyMode::NONE, |_, _| true); // DEBUG !!!! в продакшне заменить NONE на PEER и вынести в конфиг
+    builder.set_verify_callback(SslVerifyMode::NONE, |_, _| true); // DEBUG !!!! в продакшне заменить NONE на PEER и вынести в конфиг и возвращать не true, а результат проверки: true or false
     let connector = MakeTlsConnector::new(builder.build());
 
     let mut client = postgres::Client::connect(
