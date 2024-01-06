@@ -1,5 +1,7 @@
 use openssl::ssl::{SslConnector, SslMethod, SslFiletype, SslVerifyMode};
 use postgres_openssl::MakeTlsConnector;
+use openssl::sha::sha256;
+use base64::{Engine as _, engine::general_purpose};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
 
@@ -19,18 +21,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     builder.check_private_key().unwrap();
     builder.set_verify(SslVerifyMode::NONE); // DEBUG !!!! в продакшне заменить NONE на PEER и вынести в конфиг
     // accept all certificates, we'll do our own validation on them
-    builder.set_verify_callback(SslVerifyMode::NONE, move |_success, _ctx| {
-        // let mut cert = _ctx;
-        // if let Some(cert) = cert.current_cert() {
-        //     if let Ok(pkey) = cert.public_key() {
-        //         if let Ok(pem) = pkey.public_key_to_pem() {
-        //             let hash = sha256(&pem);
-        //             return hash.trim().eq_ignore_ascii_case(&cmp_hash)
-        //         }
-        //     }
-        // }
-        // false
-        true
+    builder.set_verify_callback(SslVerifyMode::NONE, move |_success, ctx| {
+        if let Some(cert) = ctx.current_cert() {
+            if let Ok(pkey) = cert.public_key() {
+                if let Ok(pem) = pkey.public_key_to_pem() {
+                    let hash = sha256(&pem);
+                    // Debug:
+                    println!("Hash: {:#?}", general_purpose::STANDARD_NO_PAD.encode(&hash));
+                    return true; // return hash.trim().eq_ignore_ascii_case(&cmp_hash) // cmp_hash можно хранить в блокчейне
+                }
+            }
+        }
+        false
     }); // DEBUG !!!! в продакшне заменить NONE на PEER и вынести в конфиг и возвращать не true, а результат проверки: true or false
     let connector = MakeTlsConnector::new(builder.build());
 
