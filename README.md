@@ -5,22 +5,27 @@
 
 # postgres
 
+```
 openssl req -new -text -passout pass:abcd -subj /CN=localhost -out server.req -keyout privkey.pem
 openssl rsa -in privkey.pem -passin pass:abcd -out server.key
 openssl req -x509 -in server.req -text -key server.key -out server.crt
 chmod 600 server.key
 test $(uname -s) = Linux && chown 70 server.key
 docker run -d --name postgres -e POSTGRES_HOST_AUTH_METHOD=trust -v "$(pwd)/server.crt:/var/lib/postgresql/server.crt:ro" -v "$(pwd)/server.key:/var/lib/postgresql/server.key:ro" postgres:12-alpine -c ssl=on -c ssl_cert_file=/var/lib/postgresql/server.crt -c ssl_key_file=/var/lib/postgresql/server.key
+```
 
 ###
 
+```
 openssl req -new -text -subj /CN=localhost -out server.req -keyout privkey.pem
 openssl rsa -in privkey.pem -out server.key
 openssl req -x509 -in server.req -text -key server.key -out server.crt
+```
 
 ###
 # В продакшне заполнить правильными данными и задать пароль на сертификат
 
+```
 openssl genrsa -out myCA.key 2048
 openssl req -x509 -new -key myCA.key -days 10000 -out myCA.crt
 openssl genrsa -out server.key 2048
@@ -42,3 +47,4 @@ mv ./client.crt ~/.postgresql/postgresql.crt
 cp ./myCA.crt ~/.postgresql/root.crt
 
 psql -h localhost -U postgres mysec
+```
