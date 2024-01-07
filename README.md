@@ -23,7 +23,7 @@ openssl req -x509 -in server.req -text -key server.key -out server.crt
 ```
 
 ###
-# В продакшне заполнить правильными данными и задать пароль на сертификат
+# Создание самоподписанного сертификата
 
 ```
 openssl genrsa -out myCA.key 2048
