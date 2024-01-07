@@ -1,9 +1,22 @@
+use std::collections::BTreeSet;
+
 use openssl::ssl::{SslConnector, SslMethod, SslFiletype, SslVerifyMode};
 use postgres_openssl::MakeTlsConnector;
 use openssl::sha::sha256;
 use base64::{Engine as _, engine::general_purpose};
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+use std::sync::Arc;
+
+use secsak::modules::verify::{
+    State,
+    Action::{
+        FetchHashes,
+        Verify,
+    },
+};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let current_dir = std::env::current_dir().expect("failed to read current directory");
     let mut cert = current_dir.clone();
@@ -21,25 +34,43 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     builder.check_private_key().unwrap();
     builder.set_verify(SslVerifyMode::NONE); // DEBUG !!!! в продакшне заменить NONE на PEER и вынести в конфиг
     // accept all certificates, we'll do our own validation on them
+
+    let mut state = State{
+        hashes: BTreeSet::new(),
+        value: false,
+    };
+
+    state.dispatch(FetchHashes).await;
+    let state = Arc::new(state);
+
     builder.set_verify_callback(SslVerifyMode::NONE, move |_success, ctx| {
         if let Some(cert) = ctx.current_cert() {
             if let Ok(pkey) = cert.public_key() {
                 if let Ok(pem) = pkey.public_key_to_pem() {
                     let hash = sha256(&pem);
                     // Debug:
-                    println!("Hash: {:#?}", general_purpose::STANDARD_NO_PAD.encode(&hash));
-                    return true; // return hash.trim().eq_ignore_ascii_case(&cmp_hash) // cmp_hash можно хранить в блокчейне
+                    let res = state.hashes.contains(&general_purpose::STANDARD_NO_PAD.encode(&hash));
+                    println!("Hash: {:#?} {:#?}", general_purpose::STANDARD_NO_PAD.encode(&hash), &res);
+                    // state.dispatch(Verify).await; // TODO: реализовать через dispatch с параметрами
+                    return res; // return hash.trim().eq_ignore_ascii_case(&cmp_hash) // cmp_hash можно хранить в блокчейне
                 }
             }
         }
         false
     }); // DEBUG !!!! в продакшне заменить NONE на PEER и вынести в конфиг и возвращать не true, а результат проверки: true or false
+
     let connector = MakeTlsConnector::new(builder.build());
 
-    let mut client = postgres::Client::connect(
+    let (mut client, mut connection) = tokio_postgres::connect(
         "host=localhost user=postgres sslmode=require dbname=mysec",
         connector,
-    )?;
+    ).await?;
+
+    tokio::spawn(async move {
+        if let Err(e) = connection.await {
+            eprintln!("connection error: {}", e);
+        }
+    });
 
     client.batch_execute("
         CREATE TABLE IF NOT EXISTS person (
@@ -47,11 +78,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             name    TEXT NOT NULL,
             data    BYTEA
         )
-    ")?;
+    ").await?;
 
     client.batch_execute("
         DROP TABLE person;
-    ")?;
+    ").await?;
 
     Ok(())
 }

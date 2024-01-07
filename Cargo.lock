@@ -1332,6 +1332,7 @@ dependencies = [
  "rand",
  "rand_core 0.5.1",
  "tokio",
+ "tokio-postgres",
  "tokio-tungstenite",
  "tungstenite 0.21.0",
  "uwebsockets_rs",

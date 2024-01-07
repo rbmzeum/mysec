@@ -1,13 +1,16 @@
-extern crate wasm_bindgen;
+// extern crate wasm_bindgen;
 
-use wasm_bindgen::prelude::*;
+// use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen]
-extern {
-    pub fn alert(s: &str);
-}
+// #[wasm_bindgen]
+// extern {
+//     pub fn alert(s: &str);
+// }
 
-#[wasm_bindgen]
-pub fn greet(name: &str) {
-    alert(&format!("Hello, {}!", name));
-}
+// #[wasm_bindgen]
+// pub fn greet(name: &str) {
+//     alert(&format!("Hello, {}!", name));
+// }
+
+pub mod modules;
+pub mod secure_invite;
