@@ -52,7 +52,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let connector = MakeTlsConnector::new(builder.build());
 
-    let (mut client, mut connection) = tokio_postgres::connect(
+    let (client, connection) = tokio_postgres::connect(
         "host=localhost user=postgres sslmode=require dbname=mysec",
         connector,
     ).await?;
