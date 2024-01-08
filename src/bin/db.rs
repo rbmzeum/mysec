@@ -48,7 +48,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
         false
-    }); // DEBUG !!!! в продакшне заменить NONE на PEER и вынести в конфиг и возвращать не true, а результат проверки: true or false
+    }); // DEBUG !!!! в продакшне заменить NONE на PEER и вынести в конфиг
 
     let connector = MakeTlsConnector::new(builder.build());
 
