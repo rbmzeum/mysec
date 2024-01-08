@@ -1,19 +1,10 @@
-use std::collections::BTreeSet;
-
 use openssl::ssl::{SslConnector, SslMethod, SslFiletype, SslVerifyMode};
 use postgres_openssl::MakeTlsConnector;
 use openssl::sha::sha256;
 use base64::{Engine as _, engine::general_purpose};
+use std::sync::{Arc, Mutex};
 
-use std::sync::Arc;
-
-use secsak::modules::verify::{
-    State,
-    Action::{
-        FetchHashes,
-        Verify,
-    },
-};
+use secsak::modules::verify::Store;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -35,23 +26,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     builder.set_verify(SslVerifyMode::NONE); // DEBUG !!!! в продакшне заменить NONE на PEER и вынести в конфиг
     // accept all certificates, we'll do our own validation on them
 
-    let mut state = State{
-        hashes: BTreeSet::new(),
-        value: false,
-    };
+    let verify_store = Store::new();
+    verify_store.actions.init_hashes().await;
 
-    state.dispatch(FetchHashes).await;
-    let state = Arc::new(state);
-
+    // TODO: вынести callback в middleware
     builder.set_verify_callback(SslVerifyMode::NONE, move |_success, ctx| {
         if let Some(cert) = ctx.current_cert() {
             if let Ok(pkey) = cert.public_key() {
                 if let Ok(pem) = pkey.public_key_to_pem() {
                     let hash = sha256(&pem);
-                    // Debug:
-                    let res = state.hashes.contains(&general_purpose::STANDARD_NO_PAD.encode(&hash));
+                    let vs = Arc::new(Mutex::new(&verify_store));
+                    let task = async move {
+                        let verify_store = vs.lock().unwrap();
+                        verify_store.actions.verify(general_purpose::STANDARD_NO_PAD.encode(&hash)).await;
+                    };
+                    futures::executor::block_on(task);
+                    let res = verify_store.getters.get_verified();
                     println!("Hash: {:#?} {:#?}", general_purpose::STANDARD_NO_PAD.encode(&hash), &res);
-                    // state.dispatch(Verify).await; // TODO: реализовать через dispatch с параметрами
                     return res; // return hash.trim().eq_ignore_ascii_case(&cmp_hash) // cmp_hash можно хранить в блокчейне
                 }
             }
