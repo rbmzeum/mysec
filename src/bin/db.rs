@@ -1,8 +1,6 @@
 use openssl::ssl::{SslConnector, SslMethod, SslFiletype, SslVerifyMode};
 use postgres_openssl::MakeTlsConnector;
-use openssl::sha::sha256;
-use base64::{Engine as _, engine::general_purpose};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use secsak::modules::verify::Store as VirifyStore;
 
@@ -28,27 +26,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let verify_store = VirifyStore::new();
     verify_store.actions.init_hashes().await;
-
-    // TODO: вынести callback в middleware
-    builder.set_verify_callback(SslVerifyMode::NONE, move |_success, ctx| {
-        if let Some(cert) = ctx.current_cert() {
-            if let Ok(pkey) = cert.public_key() {
-                if let Ok(pem) = pkey.public_key_to_pem() {
-                    let hash = sha256(&pem);
-                    let vs = Arc::new(Mutex::new(&verify_store));
-                    let task = async move {
-                        let verify_store = vs.lock().unwrap();
-                        verify_store.actions.verify(general_purpose::STANDARD_NO_PAD.encode(&hash)).await;
-                    };
-                    futures::executor::block_on(task);
-                    let res = verify_store.getters.get_verified();
-                    println!("Hash: {:#?} {:#?}", general_purpose::STANDARD_NO_PAD.encode(&hash), &res);
-                    return res; // return hash.trim().eq_ignore_ascii_case(&cmp_hash) // cmp_hash можно хранить в блокчейне
-                }
-            }
-        }
-        false
-    }); // DEBUG !!!! в продакшне заменить NONE на PEER и вынести в конфиг
+    let vs = Arc::new(verify_store);
+    builder.set_verify_callback(SslVerifyMode::NONE, vs.getters.get_verify_callback(vs.clone())); // DEBUG !!!! в продакшне заменить NONE на PEER и вынести в конфиг
 
     let connector = MakeTlsConnector::new(builder.build());
 
