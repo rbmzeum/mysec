@@ -4,7 +4,7 @@ use openssl::sha::sha256;
 use base64::{Engine as _, engine::general_purpose};
 use std::sync::{Arc, Mutex};
 
-use secsak::modules::verify::Store;
+use secsak::modules::verify::Store as VirifyStore;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -26,7 +26,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     builder.set_verify(SslVerifyMode::NONE); // DEBUG !!!! в продакшне заменить NONE на PEER и вынести в конфиг
     // accept all certificates, we'll do our own validation on them
 
-    let verify_store = Store::new();
+    let verify_store = VirifyStore::new();
     verify_store.actions.init_hashes().await;
 
     // TODO: вынести callback в middleware
