@@ -34,8 +34,11 @@ impl Actions {
         let mut hashes = BTreeSet::new();
 
         // TODO: загружать из блокчейна по ID клиента (по лицензионному ключу)
+        // for db client
         hashes.insert(String::from("4sXyRGOudf3KJ+26VPVi9bsRURfDPbbNFrho2IEa678"));
         hashes.insert(String::from("QNouKo/2uuV0WIIFMllJeqz2GeR6pdo6KAhtmmT6dI8"));
+
+        // for websocket server
 
         hashes
     }
