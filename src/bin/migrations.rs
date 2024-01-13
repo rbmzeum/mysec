@@ -73,6 +73,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         if status[0] != MS_STATUS_APPLIED {
                             continue;
                         }
+                    } else {
+                        continue;
                     }
 
                     let mut down_path = path.clone();

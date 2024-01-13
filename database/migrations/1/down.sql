@@ -1,1 +1,1 @@
-DROP TABLE persons;
+DROP TABLE IF EXISTS persons;
