@@ -116,9 +116,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut up_path = path.clone();
             up_path.push("up.sql");
 
-            let up_contents = fs::read_to_string(up_path)
+            let up_contents = fs::read_to_string(&up_path)
                 .expect("Should have been able to read the file up.sql");
 
+            println!("Path: {:#?}", &up_path);
             println!("SQL:\n{:#?}", &up_contents);
             client.batch_execute(up_contents.as_str()).await?;
 

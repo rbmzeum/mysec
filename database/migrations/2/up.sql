@@ -1,5 +1,8 @@
-CREATE TABLE IF NOT EXISTS clients (
-    id      SERIAL PRIMARY KEY,
-    name    TEXT NOT NULL,
-    data    BYTEA
+CREATE TABLE IF NOT EXISTS invites (
+    id          SERIAL PRIMARY KEY,
+    person_id   INT8 NOT NULL,
+    public_key  BYTEA UNIQUE,
+    secure_key  BYTEA UNIQUE,
+    data        BYTEA,
+    FOREIGN KEY(person_id) REFERENCES persons(id)
 );
