@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS invites (
-    id          SERIAL PRIMARY KEY,
+    id          SERIAL8 PRIMARY KEY,
     person_id   INT8 NOT NULL,
     public_key  BYTEA UNIQUE,
     secure_key  BYTEA UNIQUE,

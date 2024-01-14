@@ -48,3 +48,19 @@ cp ./myCA.crt ~/.postgresql/root.crt
 
 psql -h localhost -U postgres mysec
 ```
+
+###
+# настройка прав доступа к таблицам базы данных
+```
+CREATE USER uqlmftqj WITH ENCRYPTED PASSWORD 'gsSPd34W';
+GRANT SELECT, INSERT ON ALL TABLES IN SCHEMA public TO uqlmftqj;
+```
+# тест добавления, выборки, запреда изменения и удаления данных из под uqlmftqj
+```
+INSERT INTO persons (id, data) VALUES (1, '\xcc');
+SELECT * FROM persons;
+UPDATE persons SET data = '\xff' WHERE id = 1;
+ERROR:  permission denied for table persons
+DELETE FROM persons WHERE id = 1;
+ERROR:  permission denied for table persons
+```

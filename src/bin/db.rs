@@ -1,6 +1,8 @@
 use openssl::ssl::{SslConnector, SslMethod, SslFiletype, SslVerifyMode};
 use postgres_openssl::MakeTlsConnector;
 use std::sync::Arc;
+use core::fmt::Write;
+// use tokio_postgres::types::ToSql;
 
 use secsak::modules::verify::Store as VirifyStore;
 
@@ -32,7 +34,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let connector = MakeTlsConnector::new(builder.build());
 
     let (client, connection) = tokio_postgres::connect(
-        "host=localhost user=postgres sslmode=require dbname=mysec",
+        "host=localhost user=uqlmftqj sslmode=require dbname=mysec",
         connector,
     ).await?;
 
@@ -42,17 +44,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    client.batch_execute("
-        CREATE TABLE IF NOT EXISTS person (
-            id      SERIAL PRIMARY KEY,
-            name    TEXT NOT NULL,
-            data    BYTEA
-        )
-    ").await?;
+    let id: i64 = 1;
+    let qr = client.query("SELECT * FROM persons WHERE id = $1", &[&id]).await?;
+    for row in qr {
+        let data: Vec<u8> = row.get("data");
+        println!("data: {:#?}", &data);
+    }
 
-    client.batch_execute("
-        DROP TABLE person;
-    ").await?;
+    let data = vec![0xccu8];
+    let qr = client.query("SELECT * FROM persons WHERE data = $1", &[&data]).await?;
+    for row in qr {
+        let id: i64 = row.get("id");
+        let data: Vec<u8> = row.get("data");
+        println!("id, data: {:#?}, {:#?}", &id, &data);
+    }
+
+    let data = vec![0xffu8];
+    client.query("UPDATE persons SET data = $1 WHERE id = $2", &[&data, &id]).await?;
 
     Ok(())
 }
