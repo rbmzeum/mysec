@@ -1,9 +1,6 @@
 use openssl::ssl::{SslConnector, SslMethod, SslFiletype, SslVerifyMode};
 use postgres_openssl::MakeTlsConnector;
 use std::sync::Arc;
-use core::fmt::Write;
-// use tokio_postgres::types::ToSql;
-
 use secsak::modules::verify::Store as VirifyStore;
 
 #[tokio::main]
