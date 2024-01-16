@@ -1,1 +1,2 @@
+DROP TABLE IF EXISTS deletes_persons;
 DROP TABLE IF EXISTS persons;

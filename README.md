@@ -64,3 +64,9 @@ ERROR:  permission denied for table persons
 DELETE FROM persons WHERE id = 1;
 ERROR:  permission denied for table persons
 ```
+
+### оценки
+# примерная оценка предела стоимости хранения данных таблицы persons
+size=sizeof(key_pair)+sizeof(shared_key)+sizeof(INT8)+sizeof(INT8)=112+24+8+8=152
+10000000000*100*size=152000000000000 byte = = 138.243194669 Tb
+Без учёта полей ID, version размера индекса и структуры данных с контрольной суммой

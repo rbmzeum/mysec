@@ -3,6 +3,6 @@ CREATE TABLE IF NOT EXISTS invites (
     person_id   INT8 NOT NULL,
     public_key  BYTEA UNIQUE,
     secure_key  BYTEA UNIQUE,
-    data        BYTEA,
-    FOREIGN KEY(person_id) REFERENCES persons(id)
+    data        BYTEA
 );
+CREATE INDEX IF NOT EXISTS invites_person_id_idx ON invites(person_id);
