@@ -1,6 +1,6 @@
 use openssl::ssl::{SslConnector, SslMethod, SslFiletype, SslVerifyMode};
 use postgres_openssl::MakeTlsConnector;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::env;
 use std::fs;
 use std::fs::File;
@@ -12,7 +12,7 @@ use crate::modules::verify::Store as VirifyStore;
 use tokio_postgres::Client;
 
 pub struct State {
-    pub client: Client,
+    pub client: Arc<Mutex<Client>>,
 }
 
 impl State {
@@ -53,7 +53,7 @@ impl State {
         });
 
         Ok(State {
-            client: client,
+            client: Arc::new(Mutex::new(client)),
         })
     }
 }
