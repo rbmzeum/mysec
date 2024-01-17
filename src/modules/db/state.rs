@@ -1,11 +1,6 @@
 use openssl::ssl::{SslConnector, SslMethod, SslFiletype, SslVerifyMode};
 use postgres_openssl::MakeTlsConnector;
 use std::sync::{Arc, Mutex};
-use std::env;
-use std::fs;
-use std::fs::File;
-use std::io::prelude::*;
-use tokio::fs::try_exists;
 
 use crate::modules::verify::Store as VirifyStore;
 

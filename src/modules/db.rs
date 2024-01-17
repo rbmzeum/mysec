@@ -15,3 +15,20 @@ pub struct Store {
     pub mutations: Mutations,
     pub actions: Actions,
 }
+
+impl Store {
+    pub async fn new(dsn: &str) -> Store {
+        let initial_state = State::new(dsn).await;
+        let state = Arc::new(Mutex::new(initial_state.unwrap()));
+        let getters = Getters::new(state.clone());
+        let mutations = Mutations::new();
+        let actions = Actions::new(state.clone());
+
+        Store {
+            state,
+            getters,
+            mutations,
+            actions,
+        }
+    }
+}
