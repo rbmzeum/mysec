@@ -15,7 +15,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let current_dir = std::env::current_dir().expect("failed to read current directory");
 
     let db_store = DbStore::new("host=localhost user=postgres sslmode=require dbname=mysec").await;
-    let client = db_store.getters.get_client();
 
     let args: Vec<String> = env::args().collect();
 
@@ -51,7 +50,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .expect("Should have been able to read the file down.sql");
 
                     println!("Rollback SQL:\n{:#?}", &down_contents);
-                    client.lock().unwrap().batch_execute(down_contents.as_str()).await?;
+                    db_store.actions.batch_execute(down_contents.as_str()).await?;
 
                     fs::remove_file(&status_path)?;
                 }
@@ -88,7 +87,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             println!("Path: {:#?}", &up_path);
             println!("SQL:\n{:#?}", &up_contents);
-            client.lock().unwrap().batch_execute(up_contents.as_str()).await?;
+            db_store.actions.batch_execute(up_contents.as_str()).await?;
 
             let mut file = File::create(&status_path)?;
             file.write_all(&[MS_STATUS_APPLIED])?;
