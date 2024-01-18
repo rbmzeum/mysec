@@ -1,6 +1,7 @@
 use std::sync::{Arc, Mutex};
 use crate::modules::db::state::State;
 // use crate::modules::db::mutations::Mutations;
+use tokio_postgres::types::ToSql;
 
 pub struct Actions {
     state: Arc<Mutex<State>>,
@@ -12,8 +13,14 @@ impl Actions {
     }
 
     pub async fn batch_execute(&self, sql: &str) -> Result<(), tokio_postgres::Error> {
-        let mut state = self.state.lock().unwrap();
+        let state = self.state.lock().unwrap();
         let result = state.client.lock().unwrap().batch_execute(sql).await;
+        result
+    }
+
+    pub async fn query(&self, sql: &str, params: &[&(dyn ToSql + Sync)]) -> Result<Vec<tokio_postgres::Row>, tokio_postgres::Error> {
+        let state = self.state.lock().unwrap();
+        let result = state.client.lock().unwrap().query(sql, params).await;
         result
     }
 }
