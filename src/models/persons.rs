@@ -56,7 +56,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_find() {
-        let db_store = crate::modules::db::Store::new("host=localhost user=postgres sslmode=require dbname=mysec").await;
+        let db_store = crate::modules::db::Store::new("host=localhost user=postgres sslmode=require dbname=test_mysec").await;
         let result = Person::find(1, &db_store).await;
         match result {
             Ok(person) => {
