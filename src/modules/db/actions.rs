@@ -23,4 +23,10 @@ impl Actions {
         let result = state.client.lock().unwrap().query(sql, params).await;
         result
     }
+
+    pub async fn insert(&self, sql: &str, params: &[&(dyn ToSql + Sync)]) -> Result<u64, tokio_postgres::Error> {
+        let state = self.state.lock().unwrap();
+        let rows_updated = state.client.lock().unwrap().execute(sql, params).await;
+        rows_updated
+    }
 }
