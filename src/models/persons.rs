@@ -17,19 +17,19 @@ impl std::fmt::Display for PersonError {
 impl std::error::Error for PersonError {}
 
 pub struct Person {
-    pub id: i8,
-    pub version: i8,
+    pub id: i64,
+    pub version: i64,
     pub data: Vec<u8>,
 }
 
 impl Person {
-    async fn find(id: i8, store: &Store) -> Result<Self, Box<dyn std::error::Error>> {
-        let result = store.actions.query("SELECT * FROM persons WHERE id = $1 ORDER BY versions DESC LIMIT 1", &[&id]).await;
+    async fn find(id: i64, store: &Store) -> Result<Self, Box<dyn std::error::Error>> {
+        let result = store.actions.query("SELECT * FROM persons WHERE id = $1 ORDER BY version DESC LIMIT 1", &[&id]).await;
         match result {
             Ok(rows) => {
                 if rows.len() > 0 {
-                    let id: i8 = rows[0].get("id");
-                    let version: i8 = rows[0].get("version");
+                    let id: i64 = rows[0].get("id");
+                    let version: i64 = rows[0].get("version");
                     let data: Vec<u8> = rows[0].get("data");
                     return Ok(Self {
                         id: id,
@@ -48,6 +48,31 @@ impl Person {
             },
         }
     }
+
+    async fn save(&self, store: &Store) -> bool {
+        let result = store.actions.execute("INSERT INTO persons (id, version, data) VALUES ($1, $2, $3)", &[
+            &self.id,
+            &self.version,
+            &self.data, // TODO: make dynamically use trust_chain
+        ]).await;
+        println!("Save result: {:#?}", &result);
+        match result {
+            Ok(_v) => true,
+            Err(_e) => false,
+        }
+    }
+
+    async fn delete(&self, store: &Store) -> bool {
+        let data: Vec<u8> = vec![]; // TODO: make valid data with nonce, parent hash, current and control sum use trust_chain
+        let result = store.actions.execute("INSERT INTO deletes_persons (id, data) VALUES ($1, $2)", &[
+            &self.id,
+            &data,
+        ]).await;
+        match result {
+            Ok(_v) => true,
+            Err(_e) => false,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -56,7 +81,16 @@ mod tests {
 
     #[tokio::test]
     async fn test_find() {
-        let db_store = crate::modules::db::Store::new("host=localhost user=postgres sslmode=require dbname=test_mysec").await;
+        let db_store = crate::modules::db::Store::new("host=localhost user=postgres sslmode=require dbname=mysec").await;
+
+        let p = Person{
+            id: 1,
+            version: 1,
+            data: vec![],
+        };
+        let res = p.save(&db_store).await;
+        assert_eq!(res, true);
+
         let result = Person::find(1, &db_store).await;
         match result {
             Ok(person) => {
@@ -64,6 +98,8 @@ mod tests {
             },
             Err(e) => {
                 // assert_eq!(ERR_PERSON_NOT_FOUND, e.code);
+                dbg!(e);
+                assert!(false);
             },
         }
     }
