@@ -80,21 +80,21 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_find() {
+    async fn test_save_find_delete() {
         let db_store = crate::modules::db::Store::new("host=localhost user=postgres sslmode=require dbname=mysec").await;
 
         let p = Person{
-            id: 1,
+            id: -1,
             version: 1,
             data: vec![],
         };
         let res = p.save(&db_store).await;
         assert_eq!(res, true);
 
-        let result = Person::find(1, &db_store).await;
+        let result = Person::find(-1, &db_store).await;
         match result {
             Ok(person) => {
-                assert_eq!(person.id, 1);
+                assert_eq!(person.id, -1);
             },
             Err(e) => {
                 // assert_eq!(ERR_PERSON_NOT_FOUND, e.code);
@@ -102,6 +102,13 @@ mod tests {
                 assert!(false);
             },
         }
-    }
 
+        let _res = p.delete(&db_store).await;
+
+        // почистить от тестовых данных
+        let client = db_store.getters.get_client();
+        let id: i64 = -1;
+        let _res = client.lock().unwrap().execute("DELETE FROM deletes_persons WHERE id = $1", &[&id]).await;
+        let _res = client.lock().unwrap().execute("DELETE FROM persons WHERE id = $1", &[&id]).await;
+    }
 }
