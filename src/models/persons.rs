@@ -64,7 +64,7 @@ impl Person {
 
     async fn delete(&self, store: &Store) -> bool {
         let data: Vec<u8> = vec![]; // TODO: make valid data with nonce, parent hash, current and control sum use trust_chain
-        let result = store.actions.execute("INSERT INTO deletes_persons (id, data) VALUES ($1, $2)", &[
+        let result = store.actions.execute("INSERT INTO deletes_persons (person_id, data) VALUES ($1, $2)", &[
             &self.id,
             &data,
         ]).await;
@@ -103,7 +103,8 @@ mod tests {
             },
         }
 
-        let _res = p.delete(&db_store).await;
+        let res = p.delete(&db_store).await;
+        assert!(res);
 
         // почистить от тестовых данных
         let client = db_store.getters.get_client();
