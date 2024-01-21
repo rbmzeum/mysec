@@ -35,8 +35,8 @@ impl Actions {
 
         // TODO: загружать из блокчейна по ID клиента (по лицензионному ключу)
         // for db client
-        hashes.insert(String::from("4sXyRGOudf3KJ+26VPVi9bsRURfDPbbNFrho2IEa678"));
-        hashes.insert(String::from("QNouKo/2uuV0WIIFMllJeqz2GeR6pdo6KAhtmmT6dI8"));
+        hashes.insert(String::from("ASyYNf22TBA/YEpT0k24YGspA8QZZYnnjeXomDFmPkoiSHutI7b8t4hOAq0IznS+"));
+        hashes.insert(String::from("uMSp6Cn/eQjCcCMzdrv6fyGOuiT9iBv9alJeKsQjUZXQzV3f3FUx1aZ/m2/kw+qq"));
 
         // for websocket server
 

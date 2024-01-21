@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 use crate::modules::verify::state::State;
 use crate::modules::verify::Store;
 use openssl::x509::X509StoreContextRef;
-use openssl::sha::sha256;
+use sha3::{Digest, Sha3_384};
 use base64::{Engine as _, engine::general_purpose};
 
 pub struct Getters {
@@ -30,7 +30,9 @@ impl Getters {
             if let Some(cert) = ctx.current_cert() {
                 if let Ok(pkey) = cert.public_key() {
                     if let Ok(pem) = pkey.public_key_to_pem() {
-                        let hash = sha256(&pem);
+                        let mut hasher = Sha3_384::new();
+                        hasher.update(&pem);
+                        let hash = hasher.finalize();
                         let vs = Arc::new(Mutex::new(&verify_store));
                         let task = async move {
                             let verify_store = vs.lock().unwrap();
