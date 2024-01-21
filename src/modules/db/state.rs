@@ -26,13 +26,13 @@ impl State {
         builder.set_certificate_chain_file(cert).unwrap();
         builder.set_ca_file(ca).unwrap();
         builder.check_private_key().unwrap();
-        builder.set_verify(SslVerifyMode::NONE); // DEBUG !!!! в продакшне заменить NONE на PEER и вынести в конфиг
+        builder.set_verify(SslVerifyMode::PEER);
         // accept all certificates, we'll do our own validation on them
 
         let verify_store = VirifyStore::new();
         verify_store.actions.init_hashes().await;
         let vs = Arc::new(verify_store);
-        builder.set_verify_callback(SslVerifyMode::NONE, vs.getters.get_verify_callback(vs.clone())); // DEBUG !!!! в продакшне заменить NONE на PEER и вынести в конфиг
+        builder.set_verify_callback(SslVerifyMode::PEER, vs.getters.get_verify_callback(vs.clone()));
 
         let connector = MakeTlsConnector::new(builder.build());
 
