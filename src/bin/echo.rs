@@ -11,9 +11,11 @@ use openssl::ssl::{
     SslFiletype
 };
 use std::num::ParseIntError;
+use secsak::modules::verify::Store as VirifyStore;
 
 /// A WebSocket echo server
-fn main () -> Result<(), ParseIntError> {
+#[tokio::main]
+async fn main () -> Result<(), ParseIntError> {
     let current_dir = std::env::current_dir().expect("failed to read current directory");
     let mut cert = current_dir.clone();
     let mut key = current_dir.clone();
@@ -31,18 +33,29 @@ fn main () -> Result<(), ParseIntError> {
     acceptor.check_private_key().unwrap();
     acceptor.set_verify(SslVerifyMode::NONE); // DEBUG !!!! в продакшне заменить NONE на PEER и вынести в конфиг
     // accept all certificates, we'll do our own validation on them
-    acceptor.set_verify_callback(SslVerifyMode::NONE, |_, _| true); // DEBUG !!!! в продакшне заменить NONE на PEER и вынести в конфиг
+
+    let verify_store = VirifyStore::new();
+    verify_store.actions.init_hashes().await;
+    let vs = Arc::new(verify_store);
+    acceptor.set_verify_callback(SslVerifyMode::NONE, vs.getters.get_verify_callback(vs.clone())); // DEBUG !!!! в продакшне заменить NONE на PEER и вынести в конфиг
+
     let acceptor = Arc::new(acceptor.build());
 
     fn handle_client(stream: SslStream<TcpStream>) {
-        let mut websocket: tungstenite::WebSocket<SslStream<TcpStream>> = accept(stream).unwrap();
-        loop {
-            let msg = websocket.read().unwrap();
+        match accept(stream) {
+            Ok(mut websocket) => {
+                loop {
+                    let msg = websocket.read().unwrap();
 
-            // We do not want to send back ping/pong messages.
-            if msg.is_binary() || msg.is_text() {
-                websocket.send(msg).unwrap();
-            }
+                    // We do not want to send back ping/pong messages.
+                    if msg.is_binary() || msg.is_text() {
+                        websocket.send(msg).unwrap();
+                    }
+                }
+            },
+            Err(e) => {
+                println!("Error:\n{:#?}", &e);
+            },
         }
     }
 
