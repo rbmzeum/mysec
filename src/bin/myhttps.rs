@@ -7,8 +7,8 @@ async fn main() {
     let mut certs_path = current_dir.clone();
     let mut key_path = current_dir.clone();
     public_dir.push("public");
-    certs_path.push("ssl/certs/wssserver.local.crt");
-    key_path.push("ssl/certs/wssserver.local.key");
+    certs_path.push("ssl/wss/wssserver.local.crt");
+    key_path.push("ssl/wss/wssserver.local.key");
     println!("{:#?}\n{:#?}\n{:#?}", &current_dir, &certs_path, &key_path);
     let routes = warp::get().and(warp::fs::dir(public_dir));
     warp::serve(routes)
