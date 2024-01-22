@@ -5,6 +5,7 @@ use std::io::prelude::*;
 use tokio::fs::try_exists;
 
 use secsak::modules::db::Store as DbStore;
+use secsak::modules::config::Store as ConfigStore;
 
 const MS_STATUS_APPLIED: u8 = 0;
 const MS_STATUS_FAILED: u8 = 1;
@@ -14,7 +15,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let current_dir = std::env::current_dir().expect("failed to read current directory");
 
-    let db_store = DbStore::new("host=localhost user=postgres sslmode=require dbname=mysec").await;
+    let app_settings = ConfigStore::new("app");
+    let dsn_root = app_settings.getters.get_dsn_root();
+    let db_store = DbStore::new(dsn_root.as_str()).await;
 
     let args: Vec<String> = env::args().collect();
 

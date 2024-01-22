@@ -73,3 +73,14 @@ size=sizeof(key_pair)+sizeof(shared_key)+sizeof(INT8)+sizeof(INT8)=112+24+8+8=15
 10000000000\*100\*size=152000000000000 byte = 138.243194669 Tb
 
 Без учёта полей ID, version размера индекса и структуры данных с контрольной суммой
+
+### config example
+
+`./configs/app.json`
+
+```
+{
+    "dsn": "host=localhost user=uqlmftqj sslmode=require dbname=mysec",
+    "dsn_root": "host=localhost user=postgres sslmode=require dbname=mysec"
+}
+```

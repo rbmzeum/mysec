@@ -1,4 +1,5 @@
 /target
 /ssl
+/configs/*.json
 .vscode
 database/migrations/*/status
