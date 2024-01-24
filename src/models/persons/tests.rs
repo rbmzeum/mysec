@@ -42,6 +42,6 @@ async fn test_save_find_delete() {
     // почистить от тестовых данных
     let client = db_store.getters.get_client();
     let id: i64 = -1;
-    let _res = client.lock().unwrap().execute("DELETE FROM deletes_persons WHERE id = $1", &[&id]).await;
+    let _res = client.lock().unwrap().execute("DELETE FROM deletes_persons WHERE person_id = $1", &[&id]).await;
     let _res = client.lock().unwrap().execute("DELETE FROM persons WHERE id = $1", &[&id]).await;
 }
