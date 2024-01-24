@@ -1,7 +1,8 @@
 use super::model::Person;
 use super::control::{
     PersonControl,
-    any_as_u8_slice,
+    convert_any_as_u8_slice,
+    convert_slice_u8_to_ref_struct,
 };
 
 #[tokio::test]
@@ -18,7 +19,10 @@ async fn test_save_find_delete() {
         nonce: 34,
     };
 
-    let bytes: &[u8] = unsafe { any_as_u8_slice(&pc) };
+    let bytes: &[u8] = convert_any_as_u8_slice(&pc);
+    let rpc: &PersonControl = convert_slice_u8_to_ref_struct(bytes);
+    assert_eq!(rpc.nonce, 34);
+
     p.data = Vec::from(bytes); // TODO: добавлять через метод Person: p.make_control_data(parent_control_sum); // и спроектировать связь с trust_chain
 
     let res = p.save(&db_store).await;

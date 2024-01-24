@@ -55,6 +55,7 @@ impl Person {
             &self.id,
             &data,
         ]).await;
+        println!("Delete: {:#?}", &result);
         match result {
             Ok(_v) => true,
             Err(_e) => false,
